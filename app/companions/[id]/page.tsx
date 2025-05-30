@@ -1,3 +1,4 @@
+import CompanionComponent from "@/components/CompanionComponent";
 import { getCompanion } from "@/lib/actions/companion.action";
 import { getSubjectColor } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
@@ -11,6 +12,8 @@ interface CompanionSessionPageProps {
 const CompanionSession = async ({params}:CompanionSessionPageProps) => {
   const {id} = await params; 
   const companion = await getCompanion(id);
+
+  const {name,subject,title,topic,duration} = companion
 
   const user = await currentUser()
 
@@ -41,8 +44,15 @@ const CompanionSession = async ({params}:CompanionSessionPageProps) => {
           {companion.duration} min.
         </div>
       </article>
+      <CompanionComponent
+       {...companion}
+       companionId={id}
+       userName={user.firstName!}
+       userImage={user.imageUrl!}
+
+      />
     </main>
   )
 }
 
-export default CompanionSession
+export default CompanionSession;
