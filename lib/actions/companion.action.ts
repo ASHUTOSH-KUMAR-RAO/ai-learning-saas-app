@@ -55,7 +55,7 @@ export const getCompanion = async (id: string) => {
         .eq('id', id)
      
 
-    if (error || !data) throw new Error(error?.message || 'Companion not found');
+    if (error || !data) throw new Error(error?.message || 'Companion not found')
 
     return data[0]; 
 }
