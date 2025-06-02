@@ -1,9 +1,107 @@
-import React from 'react'
+import CompanionsList from "@/components/CompanionsList";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  addToSessionHistory,
+  getCompanion,
+  getUserSession,
+  getUserCompanion,
+} from "@/lib/actions/companion.action";
+import { currentUser } from "@clerk/nextjs/server";
+import Image from "next/image";
+import { redirect } from "next/navigation";
 
-const ProfilePage = () => {
+const ProfilePage = async () => {
+  const user = await currentUser();
+  
+  if (!user) {
+    redirect('/sign-in');
+  }
+
+  // Fetch actual data
+  const userSessions = await getUserSession(user.id) || [];
+  const userCompanions = await getUserCompanion(user.id) || [];
+
   return (
-    <div>ProfilePage</div>
-  )
-}
+    <main className="min-lg:h-3/4">
+      <section className="flex justify-between gap-4 max-sm:flex-col items-center">
+        <div className="flex gap-4 items-center">
+          {user && (
+            <Image
+              src={user.imageUrl}
+              alt={user.firstName || "User"}
+              width={105}
+              height={105}
+            />
+          )}
+          
+          <div className="flex flex-col gap-2">
+            <h1 className="font-bold text-2xl">
+              {user?.firstName} {user?.lastName}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {user?.emailAddresses[0].emailAddress}
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex gap-4">
+          <div className="border border-black rounded-lg p-3 gap-2 flex flex-col h-fit">
+            <div className="flex gap-2 items-center">
+              <Image
+                src="/icons/check.svg"
+                alt="checkmark"
+                width={22}
+                height={22}
+              />
+              <p className="font-bold text-2xl">{userSessions.length}</p>
+            </div>
+            <div>Lessons Completed</div>
+          </div>
+          <div className="border border-black rounded-lg p-3 gap-2 flex flex-col h-fit">
+            <div className="flex gap-2 items-center">
+              <Image
+                src="/icons/cap.svg"
+                alt="checkmark"
+                width={22}
+                height={22}
+              />
+              <p className="font-bold text-2xl">{userCompanions.length}</p>
+            </div>
+            <div>Companions Created</div>
+          </div>
+        </div>
+      </section>
+      
+      <Accordion type="multiple">
+        <AccordionItem value="recent">
+          <AccordionTrigger className="font-bold text-2xl">
+            Recent Sessions
+          </AccordionTrigger>
+          <AccordionContent>
+            <CompanionsList 
+              classNames="text-2xl font-bold" 
+              title="Recent Sessions" 
+              companions={userSessions}
+            />
+          </AccordionContent>
+        </AccordionItem>
 
-export default ProfilePage
+        <AccordionItem value="companions">
+            <AccordionTrigger className="font-bold text-2xl">
+            My Companions {`(${userCompanions.length})`}
+          </AccordionTrigger>
+          <AccordionContent className="cursor-pointer">
+            <CompanionsList title="My Companion" companions={userCompanions}/>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </main>
+  );
+};
+
+export default ProfilePage;
